@@ -1,24 +1,28 @@
-// t.me/ia83_transciver_bot
+// https://t.me/ia83_transceiver_bot
 const telegraf = require('telegraf');
-const BOT_TOKEN = process.env.API_KEY;
 
-// bot.telegram.
+const bot = new telegraf(process.env.API_KEY);  //creating bot
 
-const bot = new telegraf(BOT_TOKEN);
-const targetChatId = process.env.TARGET_CHAT;    //sokul unchained
-const sokulChatId = process.env.SOKUL_CHAT;
-let fromIds = [sokulChatId]
-bot.start(async (ctx) => {
-    await ctx.reply("You are my father!");
+const targetChatId = parseInt(process.env.TARGET_CHAT);    //sokul unchained caht
+const sokulChatId = parseInt(process.env.SOKUL_CHAT);   //sokul chat
+let fromIds = [sokulChatId] //chat list to retransmit
+
+bot.start(async (ctx) => {  //action on /start command
+    if (ctx.chat.id !== sokulChatId) {  //ignore in the sokul chat
+        await ctx.reply("You are not a my father!");
+    }
 });
-bot.hears("ping", ctx => {
 
-    ctx.reply(ctx.chat.id + " pong");
+bot.hears("ping", ctx => {  //action on the 'ping' message
+    if (ctx.chat.id !== sokulChatId) {  //ignore in the sokul chat
+        ctx.reply("pong");
+    }
 });
-bot.on("message", ctx => {
 
-    if (fromIds.includes(ctx.chat.id)) {
-        bot.telegram.forwardMessage(targetChatId, ctx.chat.id, ctx.message.message_id)
+bot.on("message", ctx => {  //on any message
+    if (fromIds.includes(ctx.chat.id)) {    //react only on included chats
+        bot.telegram.forwardMessage(targetChatId, ctx.chat.id, ctx.message.message_id); //forward message
+        //TODO do rich message retransmission like print author of forward the forwarded message in 'from' chat
         /*
         switch(ctx.updateSubTypes[0]){
             case "text":
@@ -41,8 +45,7 @@ bot.on("message", ctx => {
                 break;
         }
         */
-
     }
 });
 
-bot.launch().catch((data) => console.log("telegram bot crashed!11!!!" + data));
+bot.launch().catch((data) => console.log("telegram bot crashed!11!!!" + data)); //start bot
